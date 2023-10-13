@@ -63,6 +63,11 @@ static cl::opt<bool>
                      cl::desc("Enable the tile register allocation pass"),
                      cl::init(true), cl::Hidden);
 
+static cl::opt<bool>
+    EnableTLBlurInstrumentation("x86-tlblur-instrument",
+                     cl::desc("Enable the TLBlur instrumentation"),
+                     cl::init(false), cl::Hidden);
+
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeX86Target() {
   // Register the target.
   RegisterTargetMachine<X86TargetMachine> X(getTheX86_32Target());
@@ -531,6 +536,8 @@ void X86PassConfig::addPreRegAlloc() {
   }
 
   addPass(createX86SpeculativeLoadHardeningPass());
+  if (EnableTLBlurInstrumentation)
+    addPass(createX86TLBlurInstrumentHeapPass());
   addPass(createX86FlagsCopyLoweringPass());
   addPass(createX86DynAllocaExpander());
 

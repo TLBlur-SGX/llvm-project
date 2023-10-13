@@ -1220,3 +1220,7 @@ def CSR_SysV64_RegCall_NoSSE : CalleeSavedRegs<(add RBX, RBP,
                                                (sequence "R%u", 12, 15))>;
 def CSR_SysV64_RegCall       : CalleeSavedRegs<(add CSR_SysV64_RegCall_NoSSE,               
                                                (sequence "XMM%u", 8, 15))>;
+
+def CSR_TLBlur_Instrument : CalleeSavedRegs<(add RBX, RCX, RDX, RSI, R8, R9, R10,
+                                           R11, R12, R13, R14, R15, RBP,
+                                           (sequence "XMM%u", 0, 15))>;

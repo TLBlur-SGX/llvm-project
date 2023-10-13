@@ -411,10 +411,17 @@ bool BinaryEmitter::emitFunction(BinaryFunction &Function,
     emitLineInfoEnd(Function, EndSymbol);
 
   // Exception handling info for the function.
-  emitLSDA(Function, FF);
+  // emitLSDA(Function, FF);
 
   if (FF.isMainFragment() && opts::JumpTables > JTS_NONE)
     emitJumpTables(Function);
+
+
+  // // Write nops at the end of the function.
+  // if (Function.getMaxSize() != std::numeric_limits<uint64_t>::max()) {
+  //   errs() << "Emitting " << Function.getMaxSize() - FF.getImageSize() << " nops for " << Function.getDemangledName() << "\n";
+  //   Streamer.emitNops(Function.getMaxSize() - FF.getImageSize(), 10, SMLoc(), *BC.STI);
+  // }
 
   return true;
 }

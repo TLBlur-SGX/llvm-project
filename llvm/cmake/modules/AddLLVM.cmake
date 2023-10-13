@@ -884,8 +884,8 @@ macro(add_llvm_library name)
       get_target_export_arg(${name} LLVM export_to_llvmexports ${umbrella})
       install(TARGETS ${name}
               ${export_to_llvmexports}
-              LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
-              ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+              LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT ${name}
+              ARCHIVE DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT ${name}
               RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
 
       if (NOT LLVM_ENABLE_IDE)

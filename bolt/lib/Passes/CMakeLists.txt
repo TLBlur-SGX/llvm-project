@@ -44,6 +44,7 @@ add_llvm_library(LLVMBOLTPasses
   StokeInfo.cpp
   TailDuplication.cpp
   ThreeWayBranch.cpp
+  TLBlur.cpp
   ValidateInternalCalls.cpp
   ValidateMemRefs.cpp
   VeneerElimination.cpp

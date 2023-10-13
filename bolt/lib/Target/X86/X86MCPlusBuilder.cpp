@@ -2434,6 +2434,56 @@ public:
     return Code;
   }
 
+  InstructionListType
+  createTLBlurInstrumentationCall(const MCSymbol *Target, const MCSymbol *Instrumentation,
+                                  MCContext *Ctx, bool StoreEflags = false) const override {
+    InstructionListType Code;
+    MCInst PushRDI;
+    createPushRegister(PushRDI, X86::RDI, 8);
+    Code.emplace_back(PushRDI);
+    MCInst PushRAX;
+    createPushRegister(PushRAX, X86::RAX, 8);
+    Code.emplace_back(PushRAX);
+    if (StoreEflags) {
+      MCInst PushFlags;
+      createPushFlags(PushFlags, 8);
+      Code.emplace_back(PushFlags);
+    } else {
+      MCInst NOP;
+      createNoop(NOP);
+      Code.emplace_back(NOP);
+    }
+
+    MCInst Load;
+    // LoadImm.setOpcode(X86::MOV64ri);
+    // LoadImm.clear();
+    // LoadImm.addOperand(MCOperand::createReg(X86::RDI));
+    // LoadImm.addOperand(MCOperand::createImm(Addr));
+    createLea(Load, Target, X86::RDI, Ctx);
+    Code.emplace_back(Load);
+
+    Code.emplace_back(MCInstBuilder(X86::CALL64pcrel32)
+                          .addExpr(MCSymbolRefExpr::create(Instrumentation, *Ctx)));
+
+    if (StoreEflags) {
+      MCInst PopFlags;
+      createPopFlags(PopFlags, 8);
+      Code.emplace_back(PopFlags);
+    } else {
+      MCInst NOP;
+      createNoop(NOP);
+      Code.emplace_back(NOP);
+    }
+    MCInst PopRAX;
+    createPopRegister(PopRAX, X86::RAX, 8);
+    Code.emplace_back(PopRAX);
+    MCInst PopRDI;
+    createPopRegister(PopRDI, X86::RDI, 8);
+    Code.emplace_back(PopRDI);
+
+    return Code;
+  }
+
   std::optional<Relocation>
   createRelocation(const MCFixup &Fixup,
                    const MCAsmBackend &MAB) const override {

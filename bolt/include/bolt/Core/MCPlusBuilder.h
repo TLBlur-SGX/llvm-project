@@ -1671,6 +1671,13 @@ public:
     return {};
   }
 
+  virtual InstructionListType
+  createTLBlurInstrumentationCall(const MCSymbol *Target, const MCSymbol *Instrumentation,
+                                  MCContext *Ctx, bool StoreEflags = false) const {
+    llvm_unreachable("not implemented");
+    return {};
+  }
+
   /// Create a target-specific relocation out of the \p Fixup.
   /// Note that not every fixup could be converted into a relocation.
   virtual std::optional<Relocation>

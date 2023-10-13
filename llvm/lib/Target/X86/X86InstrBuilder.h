@@ -23,6 +23,7 @@
 #ifndef LLVM_LIB_TARGET_X86_X86INSTRBUILDER_H
 #define LLVM_LIB_TARGET_X86_X86INSTRBUILDER_H
 
+#include "MCTargetDesc/X86BaseInfo.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
@@ -112,6 +113,41 @@ static inline X86AddressMode getAddressFromInstr(const MachineInstr *MI,
     AM.GV = Op3.getGlobal();
   else
     AM.Disp = Op3.getImm();
+
+  return AM;
+}
+
+// Like the other getAddressFromInstr, but more like TII::getAddrModeFromMemoryOp, and better than both
+static inline std::optional<X86AddressMode> getAddressFromInstr(const MachineInstr &MI) {
+  const MCInstrDesc &Desc = MI.getDesc();
+  int MemRefBegin = X86II::getMemoryOperandNo(Desc.TSFlags);
+  if (MemRefBegin < 0)
+    return std::nullopt;
+
+  MemRefBegin += X86II::getOperandBias(Desc);
+
+  X86AddressMode AM;
+  auto &BaseOp = MI.getOperand(MemRefBegin + X86::AddrBaseReg);
+  if (BaseOp.isReg()) {
+    AM.BaseType = X86AddressMode::RegBase;
+    AM.Base.Reg = BaseOp.getReg();
+  } else if (BaseOp.isFI()) {
+    AM.BaseType = X86AddressMode::FrameIndexBase;
+    AM.Base.FrameIndex = BaseOp.getIndex();
+  } else {
+    return std::nullopt;    
+  }
+
+  AM.IndexReg = MI.getOperand(MemRefBegin + X86::AddrIndexReg).getReg();
+  AM.Scale = MI.getOperand(MemRefBegin + X86::AddrScaleAmt).getImm();
+
+  const MachineOperand &DispMO = MI.getOperand(MemRefBegin + X86::AddrDisp);
+  if (DispMO.isGlobal())
+    AM.GV = DispMO.getGlobal();
+  else if (DispMO.isImm())
+    AM.Disp = DispMO.getImm();
+  else
+    return std::nullopt;
 
   return AM;
 }

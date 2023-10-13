@@ -45,6 +45,8 @@ static cl::opt<bool>
 EnableBasePointer("x86-use-base-pointer", cl::Hidden, cl::init(true),
           cl::desc("Enable use of a base pointer for complex stack frames"));
 
+extern cl::opt<bool> TLBlurCounterRegister;
+
 X86RegisterInfo::X86RegisterInfo(const Triple &TT)
     : X86GenRegisterInfo((TT.isArch64Bit() ? X86::RIP : X86::EIP),
                          X86_MC::getDwarfRegFlavour(TT, false),
@@ -406,6 +408,10 @@ X86RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   return CallsEHReturn ? CSR_32EHRet_SaveList : CSR_32_SaveList;
 }
 
+const uint32_t *X86RegisterInfo::getCalleeSavedRegsTLBlurMask() const {
+  return CSR_TLBlur_Instrument_RegMask;
+}
+
 const MCPhysReg *X86RegisterInfo::getCalleeSavedRegsViaCopy(
     const MachineFunction *MF) const {
   assert(MF && "Invalid MachineFunction pointer.");
@@ -625,6 +631,16 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
       Reserved.set(*AI);
     for (MCRegAliasIterator AI(X86::R15, this, true); AI.isValid(); ++AI)
       Reserved.set(*AI);
+  }
+
+  // TLBlur: reserve register for global counter optimization
+  if (TLBlurCounterRegister) {
+    Reserved.set(X86::R15);
+    Reserved.set(X86::R15D);
+    Reserved.set(X86::R15B);
+    Reserved.set(X86::R15BH);
+    Reserved.set(X86::R15W);
+    Reserved.set(X86::R15WH);
   }
 
   assert(checkAllSuperRegsMarked(Reserved,

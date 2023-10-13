@@ -81,6 +81,7 @@ set(sources
   X86TargetMachine.cpp
   X86TargetObjectFile.cpp
   X86TargetTransformInfo.cpp
+  X86TLBlurInstrumentHeapAccess.cpp
   X86VZeroUpper.cpp
   X86WinEHState.cpp
   X86InsertWait.cpp

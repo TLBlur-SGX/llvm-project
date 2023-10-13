@@ -31,6 +31,7 @@
 #include "bolt/Passes/RetpolineInsertion.h"
 #include "bolt/Passes/SplitFunctions.h"
 #include "bolt/Passes/StokeInfo.h"
+#include "bolt/Passes/TLBlur.h"
 #include "bolt/Passes/TailDuplication.h"
 #include "bolt/Passes/ThreeWayBranch.h"
 #include "bolt/Passes/ValidateInternalCalls.h"
@@ -257,6 +258,9 @@ static cl::opt<bool> CMOVConversionFlag("cmov-conversion",
                                         cl::ReallyHidden,
                                         cl::cat(BoltOptCategory));
 
+static cl::opt<bool> TLBlur("tlblur",
+                               cl::desc("enable TLBlur code page instrumentation"),
+                               cl::cat(BoltOptCategory));
 } // namespace opts
 
 namespace llvm {
@@ -348,87 +352,87 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   // order they're registered.
 
   // Run this pass first to use stats for the original functions.
-  Manager.registerPass(std::make_unique<PrintProgramStats>(NeverPrint));
+  // Manager.registerPass(std::make_unique<PrintProgramStats>(NeverPrint));
 
   if (opts::PrintProfileStats)
     Manager.registerPass(std::make_unique<PrintProfileStats>(NeverPrint));
 
-  Manager.registerPass(std::make_unique<ValidateInternalCalls>(NeverPrint));
+  // Manager.registerPass(std::make_unique<ValidateInternalCalls>(NeverPrint));
 
-  Manager.registerPass(std::make_unique<ValidateMemRefs>(NeverPrint));
+  // Manager.registerPass(std::make_unique<ValidateMemRefs>(NeverPrint));
 
-  if (opts::Instrument)
-    Manager.registerPass(std::make_unique<Instrumentation>(NeverPrint));
-  else if (opts::Hugify)
-    Manager.registerPass(std::make_unique<HugePage>(NeverPrint));
+  // if (opts::Instrument)
+  //   Manager.registerPass(std::make_unique<Instrumentation>(NeverPrint));
+  // else if (opts::Hugify)
+  //   Manager.registerPass(std::make_unique<HugePage>(NeverPrint));
 
-  Manager.registerPass(std::make_unique<ShortenInstructions>(NeverPrint));
+  // Manager.registerPass(std::make_unique<ShortenInstructions>(NeverPrint));
 
-  Manager.registerPass(std::make_unique<RemoveNops>(NeverPrint),
-                       !opts::KeepNops);
+  // Manager.registerPass(std::make_unique<RemoveNops>(NeverPrint),
+  //                      !opts::KeepNops);
 
-  Manager.registerPass(std::make_unique<NormalizeCFG>(PrintNormalized));
+  // Manager.registerPass(std::make_unique<NormalizeCFG>(PrintNormalized));
 
-  Manager.registerPass(std::make_unique<StripRepRet>(NeverPrint),
-                       opts::StripRepRet);
+  // Manager.registerPass(std::make_unique<StripRepRet>(NeverPrint),
+  //                      opts::StripRepRet);
 
-  Manager.registerPass(std::make_unique<IdenticalCodeFolding>(PrintICF),
-                       opts::ICF);
+  // Manager.registerPass(std::make_unique<IdenticalCodeFolding>(PrintICF),
+  //                      opts::ICF);
 
-  Manager.registerPass(
-      std::make_unique<SpecializeMemcpy1>(NeverPrint, opts::SpecializeMemcpy1),
-      !opts::SpecializeMemcpy1.empty());
+  // Manager.registerPass(
+  //     std::make_unique<SpecializeMemcpy1>(NeverPrint, opts::SpecializeMemcpy1),
+  //     !opts::SpecializeMemcpy1.empty());
 
-  Manager.registerPass(std::make_unique<InlineMemcpy>(NeverPrint),
-                       opts::StringOps);
+  // Manager.registerPass(std::make_unique<InlineMemcpy>(NeverPrint),
+  //                      opts::StringOps);
 
-  Manager.registerPass(std::make_unique<IndirectCallPromotion>(PrintICP));
+  // Manager.registerPass(std::make_unique<IndirectCallPromotion>(PrintICP));
 
-  Manager.registerPass(
-      std::make_unique<JTFootprintReduction>(PrintJTFootprintReduction),
-      opts::JTFootprintReductionFlag);
+  // Manager.registerPass(
+  //     std::make_unique<JTFootprintReduction>(PrintJTFootprintReduction),
+  //     opts::JTFootprintReductionFlag);
 
-  Manager.registerPass(
-      std::make_unique<SimplifyRODataLoads>(PrintSimplifyROLoads),
-      opts::SimplifyRODataLoads);
+  // Manager.registerPass(
+  //     std::make_unique<SimplifyRODataLoads>(PrintSimplifyROLoads),
+  //     opts::SimplifyRODataLoads);
 
-  Manager.registerPass(std::make_unique<RegReAssign>(PrintRegReAssign),
-                       opts::RegReAssign);
+  // Manager.registerPass(std::make_unique<RegReAssign>(PrintRegReAssign),
+  //                      opts::RegReAssign);
 
-  Manager.registerPass(std::make_unique<Inliner>(PrintInline));
+  // Manager.registerPass(std::make_unique<Inliner>(PrintInline));
 
-  Manager.registerPass(std::make_unique<IdenticalCodeFolding>(PrintICF),
-                       opts::ICF);
+  // Manager.registerPass(std::make_unique<IdenticalCodeFolding>(PrintICF),
+  //                      opts::ICF);
 
-  Manager.registerPass(std::make_unique<PLTCall>(PrintPLT));
+  // Manager.registerPass(std::make_unique<PLTCall>(PrintPLT));
 
-  Manager.registerPass(std::make_unique<ThreeWayBranch>(),
-                       opts::ThreeWayBranchFlag);
+  // Manager.registerPass(std::make_unique<ThreeWayBranch>(),
+  //                      opts::ThreeWayBranchFlag);
 
   Manager.registerPass(std::make_unique<ReorderBasicBlocks>(PrintReordered));
 
-  Manager.registerPass(std::make_unique<EliminateUnreachableBlocks>(PrintUCE),
-                       opts::EliminateUnreachable);
+  // Manager.registerPass(std::make_unique<EliminateUnreachableBlocks>(PrintUCE),
+  //                      opts::EliminateUnreachable);
 
-  Manager.registerPass(std::make_unique<SplitFunctions>(PrintSplit));
+  // Manager.registerPass(std::make_unique<SplitFunctions>(PrintSplit));
 
-  Manager.registerPass(std::make_unique<LoopInversionPass>());
+  // Manager.registerPass(std::make_unique<LoopInversionPass>());
 
-  Manager.registerPass(std::make_unique<TailDuplication>());
+  // Manager.registerPass(std::make_unique<TailDuplication>());
 
-  Manager.registerPass(std::make_unique<CMOVConversion>(),
-                       opts::CMOVConversionFlag);
+  // Manager.registerPass(std::make_unique<CMOVConversion>(),
+  //                      opts::CMOVConversionFlag);
 
   // This pass syncs local branches with CFG. If any of the following
   // passes breaks the sync - they either need to re-run the pass or
   // fix branches consistency internally.
-  Manager.registerPass(std::make_unique<FixupBranches>(PrintAfterBranchFixup));
+  // Manager.registerPass(std::make_unique<FixupBranches>(PrintAfterBranchFixup));
 
   // This pass should come close to last since it uses the estimated hot
   // size of a function to determine the order.  It should definitely
   // also happen after any changes to the call graph are made, e.g. inlining.
-  Manager.registerPass(
-      std::make_unique<ReorderFunctions>(PrintReorderedFunctions));
+  // Manager.registerPass(
+  //     std::make_unique<ReorderFunctions>(PrintReorderedFunctions));
 
   // This is the second run of the SplitFunctions pass required by certain
   // splitting strategies (e.g. cdsplit). Running the SplitFunctions pass again
@@ -438,14 +442,14 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   Manager.registerPass(std::make_unique<SplitFunctions>(PrintSplit));
 
   // Print final dyno stats right while CFG and instruction analysis are intact.
-  Manager.registerPass(
-      std::make_unique<DynoStatsPrintPass>(
-          InitialDynoStats, "after all optimizations before SCTC and FOP"),
-      opts::PrintDynoStats || opts::DynoStatsAll);
+  // Manager.registerPass(
+  //     std::make_unique<DynoStatsPrintPass>(
+  //         InitialDynoStats, "after all optimizations before SCTC and FOP"),
+  //     opts::PrintDynoStats || opts::DynoStatsAll);
 
   // Add the StokeInfo pass, which extract functions for stoke optimization and
   // get the liveness information for them
-  Manager.registerPass(std::make_unique<StokeInfo>(PrintStoke), opts::Stoke);
+  // Manager.registerPass(std::make_unique<StokeInfo>(PrintStoke), opts::Stoke);
 
   // This pass introduces conditional jumps into external functions.
   // Between extending CFG to support this and isolating this pass we chose
@@ -456,17 +460,17 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   // modifies branches/control flow.  This pass is run after function
   // reordering so that it can tell whether calls are forward/backward
   // accurately.
-  Manager.registerPass(
-      std::make_unique<SimplifyConditionalTailCalls>(PrintSCTC),
-      opts::SimplifyConditionalTailCalls);
+  // Manager.registerPass(
+  //     std::make_unique<SimplifyConditionalTailCalls>(PrintSCTC),
+  //     opts::SimplifyConditionalTailCalls);
 
-  Manager.registerPass(std::make_unique<Peepholes>(PrintPeepholes));
+  // Manager.registerPass(std::make_unique<Peepholes>(PrintPeepholes));
 
   Manager.registerPass(std::make_unique<AlignerPass>());
 
   // Perform reordering on data contained in one or more sections using
   // memory profiling data.
-  Manager.registerPass(std::make_unique<ReorderData>());
+  // Manager.registerPass(std::make_unique<ReorderData>());
 
   if (BC.isAArch64()) {
     Manager.registerPass(std::make_unique<ADRRelaxationPass>());
@@ -484,12 +488,12 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   // FrameOptimizer move values around and needs to update CFIs. To do this, it
   // must read CFI, interpret it and rewrite it, so CFIs need to be correctly
   // placed according to the final layout.
-  Manager.registerPass(std::make_unique<FrameOptimizerPass>(PrintFOP));
+  // Manager.registerPass(std::make_unique<FrameOptimizerPass>(PrintFOP));
 
-  Manager.registerPass(std::make_unique<AllocCombinerPass>(PrintFOP));
+  // Manager.registerPass(std::make_unique<AllocCombinerPass>(PrintFOP));
 
-  Manager.registerPass(
-      std::make_unique<RetpolineInsertion>(PrintRetpolineInsertion));
+  // Manager.registerPass(
+  //     std::make_unique<RetpolineInsertion>(PrintRetpolineInsertion));
 
   // Assign each function an output section.
   Manager.registerPass(std::make_unique<AssignSections>());
@@ -501,8 +505,8 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   // This pass turns tail calls into jumps which makes them invisible to
   // function reordering. It's unsafe to use any CFG or instruction analysis
   // after this point.
-  Manager.registerPass(
-      std::make_unique<InstructionLowering>(PrintAfterLowering));
+  // Manager.registerPass(
+  //     std::make_unique<InstructionLowering>(PrintAfterLowering));
 
   // In non-relocation mode, mark functions that do not fit into their original
   // space as non-simple if we have to (e.g. for correct debug info update).
@@ -510,7 +514,10 @@ void BinaryFunctionPassManager::runAllPasses(BinaryContext &BC) {
   if (!BC.HasRelocations)
     Manager.registerPass(std::make_unique<CheckLargeFunctions>(NeverPrint));
 
-  Manager.registerPass(std::make_unique<LowerAnnotations>(NeverPrint));
+  if (TLBlur)
+      Manager.registerPass(std::make_unique<TLBlurPass>());
+
+  // Manager.registerPass(std::make_unique<LowerAnnotations>(NeverPrint));
 
   // Check for dirty state of MCSymbols caused by running calculateEmittedSize
   // in parallel and restore them
