@@ -1,3 +1,7 @@
+# LLVM with TLBlur passes [![DOI](https://zenodo.org/badge/911565780.svg)](https://doi.org/10.5281/zenodo.14645859)
+
+Original README below.
+
 # The LLVM Compiler Infrastructure
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/llvm/llvm-project/badge)](https://securityscorecards.dev/viewer/?uri=github.com/llvm/llvm-project)
