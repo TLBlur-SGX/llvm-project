@@ -262,7 +262,7 @@ TLBlurInstrumentHeap::writeRIPToReg(MachineBasicBlock::iterator InsertPoint,
 
 static X86AddressMode getGlobalCounterAM(Module *M) {
   X86AddressMode CounterAM;
-  CounterAM.GV = M->getGlobalVariable("__tlblur_global_counter");
+  CounterAM.GV = M->getGlobalVariable("__tlblur_counter");
   CounterAM.Base.Reg = X86::RIP;
   return CounterAM;
 }
@@ -356,7 +356,7 @@ MachineBasicBlock::iterator TLBlurInstrumentHeap::insertTLBUpdate(
     }
 
     X86AddressMode VTLBAM;
-    VTLBAM.GV = M->getGlobalVariable("__tlblur_shadow_pt");
+    VTLBAM.GV = M->getGlobalVariable("__tlblur_pam");
     VTLBAM.Base.Reg = X86::RIP;
     auto VTLBReg =
         MRI->createVirtualRegister(TRI->getRegClass(X86::GR64RegClassID));
@@ -416,7 +416,7 @@ MachineBasicBlock::iterator TLBlurInstrumentHeap::insertTLBUpdate(
     // Call instrumentation
     MBB.insert(InsertPoint,
                BuildMI(MF, DebugLoc(), TII->get(X86::CALL64pcrel32))
-                   .addGlobalAddress(M->getNamedValue("tlblur_tlb_update"))
+                   .addGlobalAddress(M->getNamedValue("tlblur_pam_update"))
                    .addRegMask(TRI->getCalleeSavedRegsTLBlurMask())
                    .addUse(X86::RDI, IsRDILive ? RegState::Implicit
                                                : RegState::ImplicitKill));
@@ -465,12 +465,12 @@ bool TLBlurInstrumentHeap::runOnMachineFunction(MachineFunction &MF) {
 
   // Declare externally defined globals
   Module *M = MF.getFunction().getParent();
-  M->getOrInsertFunction("tlblur_tlb_update", Type::getVoidTy(M->getContext()),
+  M->getOrInsertFunction("tlblur_pam_update", Type::getVoidTy(M->getContext()),
                          PointerType::getUnqual(M->getContext()));
   M->getOrInsertGlobal("__ImageBase", PointerType::getUnqual(M->getContext()));
-  M->getOrInsertGlobal("__tlblur_global_counter",
+  M->getOrInsertGlobal("__tlblur_counter",
                        PointerType::getUnqual(M->getContext()));
-  M->getOrInsertGlobal("__tlblur_shadow_pt",
+  M->getOrInsertGlobal("__tlblur_pam",
                        PointerType::getUnqual(M->getContext()));
 
   SmallVector<std::tuple<MachineInstr *, X86AddressMode>> ToInstrument;

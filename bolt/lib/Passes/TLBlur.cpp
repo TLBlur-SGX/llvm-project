@@ -158,7 +158,7 @@ bool TLBlurPass::shouldInstrument(StringRef Name, std::optional<StringRef> Secti
     return false;
       
   return SectionName == ".tlblur.text" &&
-         Name != "tlblur_tlb_update";
+         Name != "tlblur_pam_update";
 }
 
 /// Finds the first terminator of a block
@@ -361,7 +361,7 @@ BinaryBasicBlock::iterator TLBlurPass::insertInstrumentation(
     BinaryContext &BC, BinaryBasicBlock &BB, const MCSymbol *Target,
     BinaryBasicBlock::iterator It, bool SaveEflags) {
   InstructionListType Instrs = BC.MIB->createTLBlurInstrumentationCall(
-      Target, BC.Ctx->getOrCreateSymbol("tlblur_tlb_update"), BC.Ctx.get(),
+      Target, BC.Ctx->getOrCreateSymbol("tlblur_pam_update"), BC.Ctx.get(),
       SaveEflags);
   return insertInstructions(Instrs, BB, It);
 }
